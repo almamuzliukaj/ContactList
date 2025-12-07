@@ -5,46 +5,32 @@ import {
     FlatList,
     StyleSheet,
     TouchableOpacity,
-    Alert,
     TextInput,
     Image,
     Keyboard,
-    Modal, // Modal needed for the detail view
-    Linking, // Needed for Call/Email actions in the Modal
+    Modal, 
+    Linking, 
+    Platform
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // For icons
+import { Ionicons } from '@expo/vector-icons';
 import contacts from './data/contacts.json';
 
 // --- Design Constants ---
 const ACCENT_COLOR = '#84DCCF'; // Teal/Cyan for accents
 const BACKGROUND_COLOR = '#121212'; // Primary dark background
-const CARD_BACKGROUND = '#1E1E1E'; // Slightly lighter dark background for search area
+const CARD_BACKGROUND = '#1E1E1E'; // Card/List Item Background
 const TEXT_LIGHT = '#F0F0F0'; // High contrast text
 const TEXT_MUTED = '#A0A0A0'; // Muted color for details
 
 
-// --- Helper Functions (Preserved) ---
-const getInitial = (name) => {
-    return name ? name.charAt(0).toUpperCase() : '?';
-};
-
-
-// --- Contact Detail Modal Component (Integrated Here for simplicity, but best to separate) ---
-
+// --- Contact Detail Modal Component (No Change) ---
 const ContactDetailModal = ({ isVisible, contact, onClose }) => {
     if (!contact) return null;
 
     const firstName = contact.name.split(' ')[0];
 
-    // Helper to open the phone dialer
-    const handleCall = () => {
-        Linking.openURL(`tel:${contact.phone}`);
-    };
-
-    // Helper to open the email app
-    const handleEmail = () => {
-        Linking.openURL(`mailto:${contact.email}`);
-    };
+    const handleCall = () => { Linking.openURL(`tel:${contact.phone}`); };
+    const handleEmail = () => { Linking.openURL(`mailto:${contact.email}`); };
 
     return (
         <Modal
@@ -64,7 +50,7 @@ const ContactDetailModal = ({ isVisible, contact, onClose }) => {
                     {/* --- Profile Header --- */}
                     <Image
                         style={modalStyles.profileImage}
-                        source={{ uri: `https://i.pravatar.cc/150?img=${contact.id}` }} // Larger avatar
+                        source={{ uri: `https://i.pravatar.cc/150?img=${contact.id}` }}
                     />
                     <Text style={modalStyles.nameText}>{contact.name}</Text>
                     <Text style={modalStyles.greetingText}>Connect with {firstName}!</Text>
@@ -97,12 +83,12 @@ const ContactDetailModal = ({ isVisible, contact, onClose }) => {
 };
 
 
-// --- Render Item Component (Redesigned) ---
+// --- Render Item Component (No Change) ---
 const renderContact = ({ item, handleContactPress }) => (
     <TouchableOpacity
         style={listStyles.contactCardWrapper}
         onPress={() => handleContactPress(item)} 
-        activeOpacity={0.7}
+        activeOpacity={0.8}
     >
         <View style={listStyles.contactItem}>
             {/* Avatars */}
@@ -111,10 +97,9 @@ const renderContact = ({ item, handleContactPress }) => (
                 source={{ uri: `https://i.pravatar.cc/50?img=${item.id}` }}
             />
 
-            {/* Contact Details (Styled for Dark Mode) */}
+            {/* Contact Details */}
             <View style={listStyles.detailsContainer}>
                 <Text style={listStyles.nameText}>{item.name}</Text>
-                {/* FIX: Ensure all text, including emojis, is within <Text> tags */}
                 <Text style={listStyles.detailText}>📞 {item.phone}</Text> 
                 <Text style={listStyles.detailText}>📧 {item.email}</Text>
             </View>
@@ -125,10 +110,9 @@ const renderContact = ({ item, handleContactPress }) => (
     </TouchableOpacity>
 );
 
-// --- Main ContactList Component (Preserved Logic) ---
+// --- Main ContactList Component ---
 const ContactList = () => {
     const [searchText, setSearchText] = useState('');
-    // States for Modal Management
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedContact, setSelectedContact] = useState(null);
 
@@ -149,6 +133,12 @@ const ContactList = () => {
 
     return (
         <View style={listStyles.container}>
+            
+            {/* --- FIXED: Professional Header Title (Spaced Down) --- */}
+            <View style={listStyles.titleContainer}>
+                <Text style={listStyles.headerTitle}>All Contacts</Text>
+            </View>
+
             {/* SEARCH INPUT FIELD & BUTTONS */}
             <View style={listStyles.searchContainer}>
                 <Ionicons 
@@ -167,7 +157,6 @@ const ContactList = () => {
 
                 {searchText.length > 0 && (
                     <TouchableOpacity onPress={clearSearch} style={listStyles.clearButton}>
-                        {/* FIX: Using an Icon instead of plain 'X' text */}
                         <Ionicons name="close-circle" size={20} color={TEXT_MUTED} />
                     </TouchableOpacity>
                 )}
@@ -176,19 +165,22 @@ const ContactList = () => {
             {/* CORRECTED Count Display and Styling */}
             {searchText.length > 0 && (
                 <Text style={listStyles.countText}>
-                    {/* FIX: Using Text components to show the count without markdown errors */}
                     <Text style={listStyles.countHighlight}>{filteredContacts.length}</Text> results found
                 </Text>
             )}
 
             <FlatList
                 data={filteredContacts}
-                // Pass the handler down to the render function
                 renderItem={(props) => renderContact({ ...props, handleContactPress })}
-                keyExtractor={(item) => item.id}
-                ItemSeparatorComponent={() => <View style={listStyles.separator} />}
-                contentContainerStyle={{ paddingBottom: 20 }}
+                keyExtractor={(item) => String(item.id)}
+                contentContainerStyle={listStyles.flatListContent}
                 showsVerticalScrollIndicator={false}
+                ListEmptyComponent={() => (
+                    <View style={listStyles.emptyList}>
+                        <Ionicons name="alert-circle-outline" size={40} color={TEXT_MUTED} />
+                        <Text style={listStyles.emptyText}>No contacts found.</Text>
+                    </View>
+                )}
             />
             
             {/* Contact Detail Modal */}
@@ -202,16 +194,30 @@ const ContactList = () => {
 };
 
 
-// --- List Styles (Dark Mode) ---
+// --- List Styles (Enhanced Card Look) ---
 const listStyles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: BACKGROUND_COLOR, // Primary dark background
     },
     
+    // --- Header Title (Spaced Down) ---
+    titleContainer: {
+        // Generous vertical padding to push the title down from the status bar area
+        paddingVertical: 20, 
+        paddingHorizontal: 15,
+        backgroundColor: BACKGROUND_COLOR, // Use primary background here
+    },
+    headerTitle: {
+        fontSize: 32, // Larger, more modern title size
+        fontWeight: 'bold',
+        color: TEXT_LIGHT,
+    },
+    
     // --- Search Area Styles ---
     searchContainer: {
         padding: 15,
+        // Card background used for the area immediately surrounding the search field
         backgroundColor: CARD_BACKGROUND, 
         borderBottomWidth: 1,
         borderBottomColor: '#252525',
@@ -235,6 +241,11 @@ const listStyles = StyleSheet.create({
     },
     
     // --- List Item Styles ---
+    flatListContent: {
+        paddingHorizontal: 15, // Horizontal padding for the list content
+        paddingTop: 10,
+        paddingBottom: 20,
+    },
     countText: {
         fontSize: 14,
         color: TEXT_MUTED,
@@ -243,22 +254,20 @@ const listStyles = StyleSheet.create({
         paddingVertical: 10,
         backgroundColor: BACKGROUND_COLOR, 
     },
-    // NEW: Style for the bold, accented count number
     countHighlight: {
         fontWeight: 'bold',
         color: ACCENT_COLOR,
     },
-    separator: {
-        height: 1,
-        backgroundColor: '#252525', 
-        marginLeft: 85, 
-        marginRight: 15,
+    contactCardWrapper: {
+        backgroundColor: CARD_BACKGROUND,
+        borderRadius: 10,
+        marginBottom: 10, // Gap between cards
+        overflow: 'hidden',
     },
-    contactCardWrapper: {},
     contactItem: {
         paddingVertical: 15,
         paddingHorizontal: 15,
-        backgroundColor: BACKGROUND_COLOR, 
+        backgroundColor: CARD_BACKGROUND,
         flexDirection: 'row',
         alignItems: 'center',
     },
@@ -266,7 +275,7 @@ const listStyles = StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 25,
-        marginRight: 20,
+        marginRight: 15,
     },
     detailsContainer: {
         flex: 1,
@@ -282,9 +291,18 @@ const listStyles = StyleSheet.create({
         color: TEXT_MUTED,
         lineHeight: 20,
     },
+    emptyList: {
+        alignItems: 'center',
+        marginTop: 50,
+    },
+    emptyText: {
+        marginTop: 10,
+        color: TEXT_MUTED,
+        fontSize: 16,
+    }
 });
 
-// --- Modal Styles (Integrated) ---
+// --- Modal Styles (No change) ---
 const modalStyles = StyleSheet.create({
     centeredView: {
         flex: 1,
@@ -300,10 +318,10 @@ const modalStyles = StyleSheet.create({
         borderTopLeftRadius: 25,
         borderTopRightRadius: 25,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
+        shadowOffset: { width: 0, height: -5 },
+        shadowOpacity: 0.5,
+        shadowRadius: 10,
+        elevation: 15,
     },
     closeButton: {
         position: 'absolute',
