@@ -29,11 +29,16 @@ Key implementation details include:
 
 ---
 
-## 🖼️ Screenshots
+### 📸 App Screenshots
 
-| Contact List (Dark Mode) | Search Results | Detail Modal View |
-| :---------------------------: | :-------------------: | :---------------------------: |
-| <img src="assets/ContactList.jfif" alt="Dark mode contact list interface" width="180"/> | <img src="assets/ContactList1.jfif" alt="Search filtering with result count" width="180"/> | <img src="assets/ContactList2.jfif" alt="Professional contact detail modal" width="180"/> |
+<p align="center">
+  <img src="assets/ContactListApp.jpeg" width="220" style="border-radius:12px; margin-right:10px;" />
+  <img src="assets/Search-CLA.jpeg" width="220" style="border-radius:12px; margin-right:10px;" />
+  <img src="assets/ContactInfo-CLA.jpeg" width="220" style="border-radius:12px;" />
+</p>
+
+> Screens showing the contact list, search functionality, and detailed information view.
+
 
 ---
 
